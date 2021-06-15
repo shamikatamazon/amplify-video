@@ -1,0 +1,23 @@
+Description:
+    "test template"
+
+Resources:
+  MediaConverNotificationsSNS:
+    Type: AWS::SNS::Topic
+    Properties:
+        TopicName: AmplifyMediaConvertStatusEvents
+
+  MediaConvertEventsRule:
+    Type: AWS::Events::Rule
+    Properties:
+        Description: "Event rule for MediaConvert"
+        EventPattern: 
+            source:
+              - aws.mediaconvert
+            detail-type:
+              - "MediaConvert Job State Change"
+        State: ENABLED
+        Targets:
+            - Arn: !Ref "MediaConverNotificationsSNS"
+              Id: ampsns1
+            
