@@ -1,5 +1,5 @@
 Description: 
-  "S3 Workflow"
+  "MediaConvert notifications sent to SNS and then forwarded to Lambda"
 
 Parameters:
   pS3:
@@ -68,13 +68,7 @@ Resources:
                   - logs:DescribeLogStreams
                   - logs:PutLogEvents
                 Resource:
-                  - !Join ["", ["arn:aws:logs:", Ref: "AWS::Region", ":", Ref: "AWS::AccountId", ":log-group:/aws/
-               - 
-                 Effect: Allow
-                 Action:
-                   - sns:*
-                Resource:
-                  - !Join ["", ["arn:aws:sns:", Ref: "AWS::Region", ":", Ref: "AWS::AccountId", ":*"]]
+                  - arn:aws:logs:*:*:*
                   
   MediaConvertNotificationsSNS:
     Type: AWS::SNS::Topic
@@ -87,7 +81,6 @@ Resources:
   MediaConvertEventsRule:
     Type: AWS::Events::Rule
     Properties:
-        Name : "AmplifyVideo-MediaConvertEvents"
         Description: "Event rule for MediaConvert"
         EventPattern: 
             source:
@@ -105,6 +98,7 @@ Resources:
       FunctionName: !Ref rMediaconvertStatusLambda
       Action: lambda:InvokeFunction
       Principal: sns.amazonaws.com
+      SourceArn: arn:aws:sns:us-west-2:865446119418:*
       
   
   rMediaConvertNotificationsSNSPolicy:
@@ -116,6 +110,7 @@ Resources:
         Version: '2012-10-17'
         Statement:
           - Effect: Allow
+            Sid: "1"
             Action: 'sns:Publish'
             Resource: !Ref MediaConvertNotificationsSNS
             Principal:
@@ -123,3 +118,9 @@ Resources:
             Condition:
               ArnLike:
                 AWS:SourceArn: !Sub 'arn:aws:*:*:${AWS::AccountId}:*'
+          - Effect: Allow
+            Sid: "2"
+            Action: "sns:Publish"
+            Principal:
+              Service : 'events.amazonaws.com'
+            Resource: !Ref MediaConvertNotificationsSNS
