@@ -69,6 +69,11 @@ Parameters:
     Type: String
     Description: Name of SM for Private Signed URL
 <% } -%>
+  pSnsTopicName:
+    Type: String
+    Description: Name of the SNS topic for MediaConvert status events
+    AllowedPattern: "[a-zA-Z][a-zA-Z0-9-_]*"
+    Default: AmplifyMediaConvertStatusEvents
   
 
 Conditions:
@@ -247,8 +252,34 @@ Resources:
               - - !Ref pProjectName
                 - 'cfTrigger'
   
-  rSnsNotificationsSetup:
+  rSnsInvokeLambdaSetup:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub "https://s3.amazonaws.com/${pS3}/${pSourceFolder}/snsNotification.template"
-      
+      TemplateURL: !Sub "https://s3.amazonaws.com/${pS3}/${pSourceFolder}/SnsInvokeLambdaSetup.template"
+      Parameters:
+        pS3: !Ref pS3
+        pSourceFolder: !Ref pSourceFolder
+        pFunctionHash: "<%= props.hashes.MediaConvertStatusLambda %>"
+        pFunctionName:
+          !If
+            - HasEnvironmentParameter
+            - !Join
+              - '-'
+              - - !Ref pProjectName
+                - !Ref env
+                - 'MediaconvertStatusLambda'
+            - !Join
+              - '-'
+              - - !Ref pProjectName
+                - 'MediaconvertStatusLambda'
+        pSnsTopicName: !Ref pSnsTopicName
+        
+        
+        
+        
+        
+
+
+
+
+    
