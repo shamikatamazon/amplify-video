@@ -189,6 +189,25 @@ async function serviceQuestions(context, options, defaultValuesFilename, resourc
 
     fs.copySync(`${pluginDir}/templates/${template.encodingTemplate}`, `${targetDir}/video/${props.shared.resourceName}/mediaconvert-job-temp.json`);
   }
+  
+  //**********************
+  const snsQuestion = [
+    {
+      type: question.createSnsTopic.type,
+      name: question.createSnsTopic.key,
+      message: question.createSnsTopic.question,
+      when(answers) {
+        return headlessMode.autoAnswer({
+          context,
+          answers,
+          key: question.createSnsTopic.key,
+          value: args.createSnsTopic ? args.createSnsTopic : defaults.snsTopic[question.createSnsTopic.key]
+        });
+      },
+    },
+  ];
+  const sns = await inquirer.prompt(snsQuestion);
+  
 
   // prompt for cdn
   props.contentDeliveryNetwork = {};
