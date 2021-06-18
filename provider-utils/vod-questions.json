@@ -34,11 +34,11 @@
         "key" : "createSnsTopic",
         "type": "confirm",
         "question" : "Do you want to get notifications on the video processing job?",
-        "required" : true
+        "required" : true,
         "options" : [
             {
                 "value" : "true",
-                "next" : "enableSnsFunction",
+                "next" : "enableSnsFunction"
             },
             {
                 "value": "false",
