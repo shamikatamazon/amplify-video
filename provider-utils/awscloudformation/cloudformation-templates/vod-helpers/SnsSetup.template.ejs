@@ -27,6 +27,48 @@ Parameters:
 
 
 Resources:
+
+  MediaConvertNotificationsSNS:
+    Type: AWS::SNS::Topic
+    
+  MediaConvertEventsRule:
+    Type: AWS::Events::Rule
+    Properties:
+        Description: "Event rule for MediaConvert"
+        EventPattern: 
+            source:
+              - aws.mediaconvert
+            detail-type:
+              - "MediaConvert Job State Change"
+        State: ENABLED
+        Targets:
+            - Arn: !Ref MediaConvertNotificationsSNS
+              Id: MediaConvertNotificationsSNS
+
+  rMediaConvertNotificationsSNSPolicy:
+    Type: 'AWS::SNS::TopicPolicy'
+    Properties:
+      Topics:
+        - !Ref MediaConvertNotificationsSNS
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Sid: "1"
+            Action: 'sns:Publish'
+            Resource: !Ref MediaConvertNotificationsSNS
+            Principal:
+              AWS: '*'
+            Condition:
+              ArnLike:
+                AWS:SourceArn: !Sub 'arn:aws:*:*:${AWS::AccountId}:*'
+          - Effect: Allow
+            Sid: "2"
+            Action: "sns:Publish"
+            Principal:
+              Service : 'events.amazonaws.com'
+            Resource: !Ref MediaConvertNotificationsSNS
+<% if (props.sns.snsFunction) { -%>
   rMediaconvertStatusLambda:
     Type: AWS::Lambda::Function
     Properties:
@@ -69,58 +111,20 @@ Resources:
                   - logs:PutLogEvents
                 Resource:
                   - arn:aws:logs:*:*:*
-                  
-  MediaConvertNotificationsSNS:
-    Type: AWS::SNS::Topic
-    Properties:
-        TopicName: !Ref pSnsTopicName
-        Subscription:
-        - Endpoint: !GetAtt rMediaconvertStatusLambda.Arn
-          Protocol: lambda
-
-  MediaConvertEventsRule:
-    Type: AWS::Events::Rule
-    Properties:
-        Description: "Event rule for MediaConvert"
-        EventPattern: 
-            source:
-              - aws.mediaconvert
-            detail-type:
-              - "MediaConvert Job State Change"
-        State: ENABLED
-        Targets:
-            - Arn: !Ref MediaConvertNotificationsSNS
-              Id: MediaConvertNotificationsSNS
-  
+            
   rSNSLambdaPermissions:
     Type: AWS::Lambda::Permission
     Properties:
       FunctionName: !Ref rMediaconvertStatusLambda
       Action: lambda:InvokeFunction
       Principal: sns.amazonaws.com
-      SourceArn: arn:aws:sns:us-west-2:865446119418:*
+      SourceArn: !Sub arn:aws:sns:${AWS::Region}:${AWS::AccountId}:* 
       
-  
-  rMediaConvertNotificationsSNSPolicy:
-    Type: 'AWS::SNS::TopicPolicy'
+  rSNSLambdaSubscription:
+    Type: AWS::SNS::Subscription
     Properties:
-      Topics:
-        - !Ref MediaConvertNotificationsSNS
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Sid: "1"
-            Action: 'sns:Publish'
-            Resource: !Ref MediaConvertNotificationsSNS
-            Principal:
-              AWS: '*'
-            Condition:
-              ArnLike:
-                AWS:SourceArn: !Sub 'arn:aws:*:*:${AWS::AccountId}:*'
-          - Effect: Allow
-            Sid: "2"
-            Action: "sns:Publish"
-            Principal:
-              Service : 'events.amazonaws.com'
-            Resource: !Ref MediaConvertNotificationsSNS
+      Protocol: lambda
+      Endpoint: !GetAtt rMediaconvertStatusLambda.Arn
+      TopicArn: !Ref MediaConvertNotificationsSNS
+      
+<% } -%>
