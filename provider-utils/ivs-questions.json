@@ -14,20 +14,8 @@
     "channelQuality": {
         "key": "channelQuality",
         "question": "Choose the Channel type or stream quality:",
-        "type": "list",
-        "options": [
-            {
-                "name": "Standard (HD Stream)",
-                "value": "STANDARD",
-                "next": "channelLatency"
-            },
-            {
-                "name": "Basic (SD Stream)",
-                "value": "BASIC",
-                "next": "channelLatency"
-            }
-        ],
-        "default": "STANDARD",
+        "type": "confirm",
+        "default": true,
         "required": true
     },
     "channelLatency": {
@@ -45,6 +33,13 @@
             }
         ],
         "default": "LOW",
+        "required": true
+    },
+    "reportStatus" : {
+        "key": "reportStatus",
+        "question": "Report status of the channel",
+        "type": "confirm",
+        "default": "true",
         "required": true
     }
 }
