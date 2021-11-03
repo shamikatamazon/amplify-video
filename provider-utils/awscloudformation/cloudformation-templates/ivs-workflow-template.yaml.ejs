@@ -69,8 +69,20 @@ Resources:
         env: !Ref env
         pS3: !Ref pS3
         pSourceFolder: !Ref pSourceFolder
-        
         pSnsTopicName: !Ref pSnsTopicName
+        pFunctionHash: "<%= props.hashes.IvsStatusLambda %>"
+        pFunctionName:
+          !If
+            - HasEnvironmentParameter
+            - !Join
+              - '-'
+              - - !Ref pProjectName
+                - !Ref env
+                - 'IvsChannelStatusLambda'
+            - !Join
+              - '-'
+              - - !Ref pProjectName
+                - 'IvsChannelStatusLambda'
         
 <% }  -%>
 
